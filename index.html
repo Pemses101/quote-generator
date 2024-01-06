@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Generator</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            transition: background 0.5s ease-in-out;
+        }
+
+        #quote-container {
+            background: linear-gradient(to right, #73f54c, #ee6767);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(245, 241, 241, 0.884);
+            max-width: 400px;
+            width: 100%;
+            margin: auto;
+            margin-bottom: 20px;
+        }
+
+        #quote {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #attribution {
+            font-style: italic;
+            margin-top: 10px;
+            color: #555;
+        }
+
+        #generateBtn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        #generateBtn:hover {
+            background-color: #2980b9;
+        }
+
+        #downloadBtn,
+        #shareBtn {
+            font-size: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+            color: #3498db;
+            display: block;
+        }
+
+        .social-media-icons {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .social-media-icon {
+            font-size: 30px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="card" id="quote-container">
+            <div class="card-body">
+                <div id="quote">Press the button for a quote</div>
+                <div id="attribution"></div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" id="generateBtn" onclick="fetchQuote()">Generate Quote</button>
+
+        <span class="btn btn-outline-primary" id="downloadBtn" onclick="downloadQuote()"><i
+                class="fas fa-download"></i> Download</span>
+        <span class="btn btn-outline-primary" id="shareBtn" onclick="shareAsImage()"><i
+                class="fas fa-share-alt"></i> Share</span>
+
+        <div class="social-media-icons" id="socialMediaIcons">
+            <i class="fab fa-twitter social-media-icon" onclick="shareOnSocialMedia('twitter')"></i>
+            <i class="fab fa-facebook-f social-media-icon" onclick="shareOnSocialMedia('facebook')"></i>
+            <i class="fab fa-whatsapp social-media-icon" onclick="shareOnSocialMedia('whatsapp')"></i>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS and Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        async function fetchQuote() {
+            try {
+                const response = await fetch('https://api.quotable.io/random');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch quote');
+                }
+                const data = await response.json();
+                document.getElementById('quote').innerText = `"${data.content}"`;
+                document.getElementById('attribution').innerText = `- Pemses`;
+                // Change gradient color on each quote
+                document.body.style.background = `linear-gradient(to right, #${Math.floor(Math.random()*16777215).toString(16)}, #${Math.floor(Math.random()*16777215).toString(16)})`;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('quote').innerText = 'Failed to fetch quote';
+            }
+        }
+
+        function downloadQuote() {
+            const quoteContainer = document.getElementById('quote-container');
+            html2canvas(quoteContainer).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'quote.png';
+                link.click();
+            });
+        }
+
+        function shareAsImage() {
+    const quoteContainer = document.getElementById('quote-container');
+    html2canvas(quoteContainer).then(canvas => {
+        const shareUrl = canvas.toDataURL('image/png');
+
+        // Open a new window to display the generated image and share options
+        const imageWindow = window.open('', '_blank');
+        imageWindow.document.write(`
+            <img src="${shareUrl}" alt="Generated Quote Image">
+            <div>
+                <button onclick="shareOnSocialMedia('twitter')">Share on Twitter</button>
+                <button onclick="shareOnSocialMedia('facebook')">Share on Facebook</button>
+                <button onclick="shareOnSocialMedia('whatsapp')">Share on WhatsApp</button>
+            </div>
+        `);
+
+        // Ensure the new window's document is fully loaded before accessing its elements
+        imageWindow.document.addEventListener('DOMContentLoaded', function () {
+            const buttons = imageWindow.document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function () {
+                    shareOnSocialMedia(this.getAttribute('data-platform'), shareUrl);
+                });
+            });
+        });
+    });
+}
+
+        function shareOnSocialMedia(platform) {
+            const quoteText = document.getElementById('quote').innerText;
+            const shareUrl = 'https://your-share-url.com'; // Replace with your actual share URL
+            const shareText = `Check out this inspiring quote: ${quoteText} - Pemses`;
+
+            // You can customize the social media sharing URLs as needed
+            let sharePlatformUrl = '';
+            switch (platform) {
+                case 'twitter':
+                    sharePlatformUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+                    break;
+                case 'facebook':
+                    sharePlatformUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+                    break;
+                case 'whatsapp':
+                    sharePlatformUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)} ${encodeURIComponent(shareUrl)}`;
+                    break;
+                default:
+                    break;
+            }
+
+            if (sharePlatformUrl) {
+                window.open(sharePlatformUrl, '_blank');
+            }
+        }
+    </script>
+</body>
+
+</html>
